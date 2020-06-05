@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # 
-# Generates an HTML file for previewing all styles defined in a CSS file
+# Generate an HTML file for previewing all styles defined in a CSS file
 # 
 # dependencies: cssutils
 # USAGE:
-#     css_preview_generator.py style.css > preview.html
+#     python3 css_preview_generator.py style.css > preview.html
 
 import re
 import sys
