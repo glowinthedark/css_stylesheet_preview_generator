@@ -13,7 +13,6 @@ import sys
 import cssutils
 
 image_placeholder = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='150' viewBox='0 0 300 150'%3E%3Crect fill='yellow' width='300' height='150'/%3E%3Ctext fill='rgba(0,0,0,0.5)' x='50%25' y='50%25' text-anchor='middle'%3E300×150%3C/text%3E%3C/svg%3E"
-canonical_tags = 'a abbr acronym address applet area article aside audio b base basefont bdi bdo big blockquote br button canvas caption center cite code col colgroup data datalist dd del details dfn dialog dir div dl dt em embed fieldset figcaption figure font footer form frame frameset h1 h2 h3 h4 h5 h6 head header hr i iframe img input ins kbd label legend li link main map mark meta meter nav noframes noscript object ol optgroup option out p param picture pre progress q rp rt ruby s samp script section select small source span strike strong style sub summary sup svg table tbody td template textarea tfoot th thead time title tr track tt u ul var video wbr'.split()
 
 
 def render(s, out):
@@ -68,13 +67,8 @@ def render_open_tag(definition, out):
             tag, class_or_id = extract_class_id(definition)
             render(f'''<a {class_or_id} href="#">''', out)
 
-        elif definition == 'img' or definition.startswith('img.'):
+        elif definition == 'img' or definition.startswith(('img.','img#')):
             render(f'<img src="{image_placeholder}" alt="[image]">', out)
-        # elif '.' in definition:
-        #     items = definition.split('.')
-        #     tag = items[0]
-        #     classes = ' '.join(items[1:])
-        #     render(f'<{tag} class="{classes}">', out)
         else:
             tag, class_or_id = extract_class_id(definition)
             render(f'<{tag} {class_or_id}>', out)
@@ -115,7 +109,7 @@ if __name__ == '__main__':
         if isinstance(rule, cssutils.css.CSSStyleRule):
             position = getattr(rule.style, 'position', None)
 
-            if position in ('fixed', 'absolute'):
+            if position in ('fixed', 'absolute', 'sticky'):
                 for single_selector in rule.selectorList:  # type: cssutils.css.Selector
                     selectors_requiring_iframe.append(single_selector.selectorText)
 
@@ -129,8 +123,6 @@ if __name__ == '__main__':
             sys.stderr.write(f'selectors: {full_selectors_text}\n')
 
             for single_selector in selectors:  # type: cssutils.css.Selector
-                # selector_text = getattr(rule, 'selectorText', None)
-
                 if not single_selector or single_selector.selectorText.startswith(('html', 'body')):
                     continue
 
@@ -150,7 +142,7 @@ if __name__ == '__main__':
                 # if current selector is a child of an absolute/fixed rule then also wrap it in an iframe
                 matching_abs_parents = [sel for sel in selectors_requiring_iframe if sel in single_selector.selectorText]
 
-                need_iframe = position in ('fixed', 'absolute') or len(matching_abs_parents)
+                need_iframe = position in ('fixed', 'absolute', 'sticky') or len(matching_abs_parents)
 
                 out = None
                 if need_iframe:
