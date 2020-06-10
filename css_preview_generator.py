@@ -85,7 +85,7 @@
     if __name__ == '__main__':
     
         if len(sys.argv) == 1 or sys.argv[1] in (('-h', '--help')):
-            print(f'Usage: {sys.argv[0]} style.css')
+            print(f'Usage: {sys.argv[0]} style.css > preview.html')
             sys.exit(-1)
     
         already_seen = []
@@ -117,7 +117,7 @@
             if isinstance(rule, cssutils.css.CSSStyleRule):
                 selectors: cssutils.css.SelectorList = getattr(rule, 'selectorList', [])
                 full_selectors_text = rule.selectorText
-                print(f'Selectors: {full_selectors_text}', file=sys.stderr)
+                print(f'CSS RULE: {full_selectors_text}', file=sys.stderr)
     
                 for single_selector in selectors:  # type: cssutils.css.Selector
     
