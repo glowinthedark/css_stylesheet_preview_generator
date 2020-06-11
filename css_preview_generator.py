@@ -68,7 +68,10 @@
                 render(f'<img src="{image_placeholder}" alt="[image]">', out)
             else:
                 tag, class_or_id = extract_class_id(definition)
-                render(f'<{tag} {class_or_id}>', out)
+                if tag.lower() == 'td':
+                    render(f'<table><thead><tr><th>🟨🟧[th]🟧🟨</th></thead><tbody><tr><td {class_or_id}>🟩🟦[td]🟦🟩<br/>', out)
+                else:
+                    render(f'<{tag} {class_or_id}>', out)
     
     
     def render_close_tag(definition, out):
@@ -79,12 +82,15 @@
                 render(f'⚓️ {definition}</a>', out)
             else:
                 tag, _ = extract_class_id(definition)
-                render(f'</{tag}>', out)
+                if tag.lower() == 'td':
+                    render('</td></tr></tbody></table>', out)
+                else:
+                    render(f'</{tag}>', out)
     
     
     if __name__ == '__main__':
     
-        if len(sys.argv) == 1 or sys.argv[1] in (('-h', '--help')):
+        if len(sys.argv) == 1 or sys.argv[1] in ('-h', '--help'):
             print(f'Usage: {sys.argv[0]} style.css > preview.html')
             sys.exit(-1)
     
@@ -117,7 +123,7 @@
             if isinstance(rule, cssutils.css.CSSStyleRule):
                 selectors: cssutils.css.SelectorList = getattr(rule, 'selectorList', [])
                 full_selectors_text = rule.selectorText
-                print(f'CSS RULE: {full_selectors_text}', file=sys.stderr)
+                print(f'CSS Rule: {full_selectors_text}', file=sys.stderr)
     
                 for single_selector in selectors:  # type: cssutils.css.Selector
     
@@ -140,6 +146,9 @@
                     else:
                         already_seen.append(current_selector_text)
     
+                    if '  ' in current_selector_text:
+                        current_selector_text = current_selector_text.replace('  ', ' ')
+    
                     position = getattr(rule.style, 'position', None)
     
                     # if current selector is a child of an absolute/fixed rule then also wrap it in an iframe
@@ -147,12 +156,15 @@
     
                     need_iframe = position in ('fixed', 'absolute', 'sticky') or len(matching_abs_parents)
     
+                    need_table = False
+    
                     out = None
                     if need_iframe:
                         print(
                             f'''<iframe style="border:1px dotted #acad9e;" width="400" height="300" srcdoc="{html.escape(f'<html><head><link href="{css_file}" rel="stylesheet" type="text/css"/></head><body style="background:#f6f4ee">')}''',
                             end='')
                         out = io.StringIO()
+    
     
                     print(f'\t{current_selector_text}', file=sys.stderr)
                     down_the_rabbit_hole(current_selector_text.split(), full_selectors_text, out)
