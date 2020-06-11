@@ -1,4 +1,5 @@
     #!/usr/bin/env python3
+    # -*- coding: utf-8 -*-
     #
     # Generates an HTML file for previewing all styles defined in a CSS file
     #
