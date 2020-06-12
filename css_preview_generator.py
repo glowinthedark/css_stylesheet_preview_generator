@@ -16,13 +16,14 @@ image_placeholder = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w
 
 
 def render(s, out):
-    if out and not out.closed:
-        return print(s, end='', file=out)
-    else:
-        print(s, flush=True)
+    # if isinstance(out, io.StringIO):
+    #     terminator = ''
+    # else:
+    #     terminator = '\n'
+    print(s, end='', file=out)
 
 
-def down_the_rabbit_hole(chunks, full_selector, out=None):
+def down_the_rabbit_hole(chunks, full_selector, out):
     if len(chunks):
         chunk = chunks.pop(0)
         render_open_tag(chunk, out)
@@ -91,22 +92,39 @@ def render_close_tag(definition, out):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 1 or sys.argv[1] in ('-h', '--help'):
-        print(f'Usage: {sys.argv[0]} style.css > preview.html')
-        sys.exit(-1)
+    import argparse
+
+    parser = argparse.ArgumentParser(description='CSS Preview Generator')
+    parser.add_argument('css_file',
+                        help='CSS stylesheet file name')
+    parser.add_argument('--verbose', '-v',
+                        help='Verbose output',
+                        default=False,
+                        action='store_true')
+    parser.add_argument('--output-file', '-o',
+                        metavar='output',
+                        help='HTML preview filename')
+
+    args = parser.parse_args(sys.argv[1:])
+
+    output_file = open(args.output_file, 'w') or sys.stdout
 
     already_seen = []
-    css_file = sys.argv[1]
-    sheet = cssutils.parseFile(css_file)
+
+    sheet = cssutils.parseFile(args.css_file)
+
+    print('Generating HTML preview. Please wait...', file=sys.stderr)
+
     print(f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CSS preview: {css_file}</title>
-    <link href="{css_file}" rel="stylesheet" type="text/css" />
+    <title>CSS preview: {args.css_file}</title>
+    <link href="{args.css_file}" rel="stylesheet" type="text/css" />
 </head>
 <body>
-''')
+''', file=output_file)
+
     selectors_requiring_iframe = []
     # build a list of absolute & fixed rules
     for rule in sheet:
@@ -124,7 +142,9 @@ if __name__ == '__main__':
         if isinstance(rule, cssutils.css.CSSStyleRule):
             selectors: cssutils.css.SelectorList = getattr(rule, 'selectorList', [])
             full_selectors_text = rule.selectorText
-            print(f'CSS Rule: {full_selectors_text}', file=sys.stderr)
+
+            if args.verbose:
+                print(f'CSS Rule: {full_selectors_text}', file=sys.stderr)
 
             for single_selector in selectors:  # type: cssutils.css.Selector
 
@@ -159,21 +179,25 @@ if __name__ == '__main__':
 
                 need_table = False
 
-                out = None
                 if need_iframe:
                     print(
-                        f'''<iframe style="border:1px dotted #acad9e;" width="400" height="300" srcdoc="{html.escape(f'<html><head><link href="{css_file}" rel="stylesheet" type="text/css"/></head><body style="background:#f6f4ee">')}''',
-                        end='')
+                        f'''<iframe style="border:1px dotted #acad9e;" width="400" height="300" srcdoc="{html.escape(f'<html><head><link href="{args.css_file}" rel="stylesheet" type="text/css"/></head><body style="background:#f6f4ee">')}''',
+                        end='', file=output_file)
+
                     out = io.StringIO()
+                else:
+                    out = output_file
 
-
-                print(f'\t{current_selector_text}', file=sys.stderr)
+                if args.verbose:
+                    print(f'\t{current_selector_text}', file=sys.stderr)
                 down_the_rabbit_hole(current_selector_text.split(), full_selectors_text, out)
 
                 if need_iframe:
-                    print(html.escape(out.getvalue()), end='')
-                    out.close()
-                    print('"></iframe>')
-print('''
-</body>
-</html>''')
+                    print(html.escape(out.getvalue()), end='', file=output_file)
+                    print('"></iframe>', file=output_file)
+    print('''
+    </body>
+    </html>''', file=output_file)
+
+    if args.output_file:
+        print(f'Wrote HTML to {args.output_file}.', file=sys.stderr)
