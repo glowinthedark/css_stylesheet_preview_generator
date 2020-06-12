@@ -11,4 +11,4 @@ python3 css_stylesheet_preview_generator.py stylesheet.css -o preview.html
 python3 css_stylesheet_preview_generator.py stylesheet.css -v -o preview.html
 ```
 
-If not output file is specified then HTML is written to stdout. Debug info goes to stderr.
+If no output file is specified then HTML is written to stdout. Debug info goes to stderr.
