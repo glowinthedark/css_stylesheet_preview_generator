@@ -4,7 +4,7 @@
 #
 # dependencies: cssutils
 # USAGE:
-#     css_preview_generator.py style.css > preview.html
+#     css_preview_generator.py style.css -o preview.html
 import html
 import io
 import sys
