@@ -22,3 +22,6 @@ python3 css_stylesheet_preview_generator.py stylesheet.css -v -o preview.html
 
 If no output file is specified then HTML is written to stdout. Debug info goes to stderr.
 
+## Sample output
+
+![CSS stylesheet HTML preview — generated image](css_stylesheet_preview_html_generator.png?raw=true "Title")
