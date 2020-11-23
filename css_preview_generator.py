@@ -70,7 +70,7 @@ def render_open_tag(definition, out):
         else:
             tag, class_or_id = extract_class_id(definition)
             if tag.lower() == 'td':
-                render(f'<table><thead><tr><th>🟨🟧[th]🟧🟨</th></thead><tbody><tr><td {class_or_id}>🟩🟦[td]🟦🟩<br/>', out)
+                render(f'<table><thead><tr><th>&#x1F536;&#x1F537;[th]&#x1F537;&#x1F536;</th></thead><tbody><tr><td {class_or_id}>&#x1F539;[td]&#x1F539;<br/>', out)
             else:
                 render(f'<{tag} {class_or_id}>', out)
 
